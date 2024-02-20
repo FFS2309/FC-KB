@@ -10,12 +10,6 @@
 
 #include <wiringx.h>
 
-/*int columns[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-* int rows[] = {15, 16, 17, 18, 19, 20, 21, 22, 26, 27};
-* unsigned char pressed_scancodes[6];
-* char kmod = 0;
-*/
-
 bool state[sizeof(columns)/sizeof(int)][sizeof(rows)/sizeof(int)];
 #define BUF_LEN 512
 int main() {
@@ -38,7 +32,6 @@ int main() {
 			printf("Invalid GPIO %d\n", rows[i]);
 			return -1;
 		}
-//		digitalWrite(rows[i], LOW);
 		pinMode(rows[i], PINMODE_INPUT);
 	}
 	if(wiringXValidGPIO(num_lock) != 0){
@@ -86,15 +79,15 @@ int main() {
 			}
 		}
 
-		char report[8];
-		memset(&report, 0x0, 8);
+		char report[82];
+		memset(&report, 0x0, 82);
 		int curKey = 0;
 		for(int c = 0; c < sizeof(columns)/sizeof(int); c++){
 			digitalWrite(columns[c], LOW);
 			for(int r = 0; r < sizeof(rows)/sizeof(int); r++){
 				char curState = state[c][r];
 				state[c][r] = (digitalRead(rows[r]) == LOW);
-				if(state[c][r] == true && curKey < 6){
+				if(state[c][r] == true && curKey < 80){
 					char *binding = mapping[c][r];
 					for(int i = 0; kmod[i].opt != NULL; i++){
 						if (strcmp(binding, kmod[i].opt) == 0) {
@@ -109,17 +102,12 @@ int main() {
 						}
 					}
 				}
-				if(state[c][r] != curState) printf("statechange to %s column %d, row %d\n", (state[c][r] ? "HIGH" : "LOW"), c, r);
+				//if(state[c][r] != curState) printf("statechange to %s column %d, row %d\n", (state[c][r] ? "HIGH" : "LOW"), c, r);
 			}
 			digitalWrite(columns[c], HIGH);
 		}
-		//printf("Report: ");
-		//for(int i = 0; i < sizeof(report)/sizeof(char); i++){
-		//	printf("%x ", report[i]);
-		//}
-		//printf("\n");
-		write(fd, report, 8);//Send Report over USB
-		usleep(1000);
+		write(fd, report, 80);//Send Report over USB
+		usleep(700);
 	}
 
 	close(fd);
