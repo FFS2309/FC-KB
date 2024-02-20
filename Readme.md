@@ -1,4 +1,15 @@
 # FC-KB diy keyboard software for milk-v duo
+A keyboard software meant to run on a Milk-V duo.
+
+## Features
+- [x] Modifier key input
+- [x] Normal key inputs
+- [x] (partial) LED support
+- [x] N-Key rollover (The currently included hid descriptor "only" supports 80 key rollover but adapting to more keys would be fairly trivial)
+### Todo
+- [ ] RGB
+- [ ] Multiple bindings per key
+- [ ] Layer support
 
 ## General project structure
 ### kbdrv-main.c
