@@ -7,6 +7,7 @@ A keyboard software meant to run on a Milk-V duo.
 - [x] (partial) LED support
 - [x] N-Key rollover (The currently included hid descriptor "only" supports 80 key rollover but adapting to more keys would be fairly trivial)
 - [x] Multiple bindings per key
+- [x] Debouncing (immediate on, 5ms until key turns off)
 ### Todo
 - [ ] RGB
 - [ ] Layer support
@@ -17,7 +18,7 @@ This file contains all the program code required to scan the keyboard matrix as 
 
 ### keyboard\_mapping.h
 This file contains all the configuration and mapping of the device you are working with. This includes the GPIO pin mapping to rows/columns, matrix to binding
-identifier and binding identifier to hid-modifiers/hid-usage codes. Currently there is no support for binding multiple actions to one key.
+identifier and binding identifier to hid-modifiers/hid-usage codes.
 
 ## Important notes
 

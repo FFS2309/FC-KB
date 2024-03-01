@@ -10,7 +10,7 @@
 
 #include <wiringx.h>
 
-bool state[sizeof(columns)/sizeof(int)][sizeof(rows)/sizeof(int)];
+bool state[sizeof(columns)/sizeof(int)][sizeof(rows)/sizeof(int)][5];
 #define BUF_LEN 512
 int main() {
 	
@@ -56,7 +56,8 @@ int main() {
 		perror(filename);
 		return 3;
 	}
-
+	
+	int dbIndex = 4; //db = debounce! -> debounceIndex
 	while(true){
 		FD_ZERO(&rfds);
 		FD_SET(fd, &rfds);
@@ -85,9 +86,11 @@ int main() {
 		for(int c = 0; c < sizeof(columns)/sizeof(int); c++){
 			digitalWrite(columns[c], LOW);
 			for(int r = 0; r < sizeof(rows)/sizeof(int); r++){
-				char curState = state[c][r];
-				state[c][r] = (digitalRead(rows[r]) == LOW);
-				if((state[c][r] == true || curState == true)){
+				bool curState = state[c][r][(dbIndex+1)%5];
+				state[c][r][dbIndex] = (digitalRead(rows[r]) == LOW);
+				if((state[c][r][dbIndex] == true || state[c][r][(dbIndex+1)%5] == true || state[c][r][(dbIndex+2)%5] == true
+							|| state[c][r][(dbIndex+3)%5] == true || state[c][r][(dbIndex+4)%5] == true)){
+
 					char bind[sizeof(mapping[c][r])/sizeof(char)];
 					strcpy(bind, mapping[c][r]);
 					char *binding = strtok(bind, " ");
@@ -106,10 +109,12 @@ int main() {
 						}
 					}
 				}
-				//if(state[c][r] != curState) printf("statechange to %s column %d, row %d\n", (state[c][r] ? "HIGH" : "LOW"), c, r);
+				//if(state[c][r][dbIndex] != curState) printf("statechange to %s column %d, row %d\n", (state[c][r] ? "HIGH" : "LOW"), c, r);
 			}
 			digitalWrite(columns[c], HIGH);
 		}
+		dbIndex--;
+		if(dbIndex > 0) dbIndex = 4;
 		write(fd, report, 82);//Send Report over USB
 		usleep(700);
 	}
