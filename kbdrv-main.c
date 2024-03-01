@@ -16,13 +16,13 @@ int main() {
 	
 	if(wiringXSetup("duo", NULL) == -1){
 		wiringXGC();
-		return -1;
+		return 1;
 	}
 
 	for(int i = 0; i < sizeof(columns)/sizeof(int); i++){
 		if(wiringXValidGPIO(columns[i]) != 0){
 			printf("Invalid GPIO %d\n", columns[i]);
-			return -1;
+			return 2;
 		}
 		pinMode(columns[i], PINMODE_OUTPUT);
 		digitalWrite(columns[i], HIGH);
@@ -30,13 +30,13 @@ int main() {
 	for(int i = 0; i < sizeof(rows)/sizeof(int); i++){
 		if(wiringXValidGPIO(rows[i]) != 0){
 			printf("Invalid GPIO %d\n", rows[i]);
-			return -1;
+			return 2;
 		}
 		pinMode(rows[i], PINMODE_INPUT);
 	}
 	if(wiringXValidGPIO(num_lock) != 0){
 		printf("Invalid GPIO %d\n", num_lock);
-		return -1;
+		return 2;
 	}
 	pinMode(num_lock, PINMODE_OUTPUT);
 	
@@ -54,7 +54,7 @@ int main() {
 
 	if((fd = open(filename, O_RDWR, 0666)) == -1) {
 		perror(filename);
-		return -1;
+		return 3;
 	}
 
 	while(true){
@@ -87,18 +87,22 @@ int main() {
 			for(int r = 0; r < sizeof(rows)/sizeof(int); r++){
 				char curState = state[c][r];
 				state[c][r] = (digitalRead(rows[r]) == LOW);
-				if(state[c][r] == true && curKey < 80){
-					char *binding = mapping[c][r];
-					for(int i = 0; kmod[i].opt != NULL; i++){
-						if (strcmp(binding, kmod[i].opt) == 0) {
-							report[0] = report[0] | kmod[i].val;
-							break;
+				if((state[c][r] == true || curState == true)){
+					char bind[sizeof(mapping[c][r])/sizeof(char)];
+					strcpy(bind, mapping[c][r]);
+					char *binding = strtok(bind, " ");
+					for(; binding != NULL; binding = strtok(NULL, " ")){
+						for(int i = 0; kmod[i].opt != NULL; i++){
+							if (strcmp(binding, kmod[i].opt) == 0) {
+								report[0] = report[0] | kmod[i].val;
+								break;
+							}
 						}
-					}
-					for(int i = 0; kval[i].opt != NULL; i++){
-						if(strcmp(binding, kval[i].opt) == 0) {
-							report[2 + curKey++] = kval[i].val;
-							break;
+						for(int i = 0; kval[i].opt != NULL; i++){
+							if(strcmp(binding, kval[i].opt) == 0 && curKey < 80) {
+								report[2 + curKey++] = kval[i].val;
+								break;
+							}
 						}
 					}
 				}
@@ -106,7 +110,7 @@ int main() {
 			}
 			digitalWrite(columns[c], HIGH);
 		}
-		write(fd, report, 80);//Send Report over USB
+		write(fd, report, 82);//Send Report over USB
 		usleep(700);
 	}
 
