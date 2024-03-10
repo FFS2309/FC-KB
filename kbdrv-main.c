@@ -38,7 +38,12 @@ int main() {
 		printf("Invalid GPIO %d\n", num_lock);
 		return 2;
 	}
+	if(wiringXValidGPIO(caps_lock) != 0){
+		printf("Invalid GPIO %d\n", caps_lock);
+		return 2;
+	}
 	pinMode(num_lock, PINMODE_OUTPUT);
+	pinMode(caps_lock, PINMODE_OUTPUT);
 	
 	printf("Ready to start doing keyboard things :)\n");
 
@@ -77,6 +82,7 @@ int main() {
 			for(int i = 0; i < cmd_len; i++){
 				//CONTROL LEDS
 				digitalWrite(num_lock, (buf[i] % 2 == 1 ? HIGH : LOW));
+				digitalWrite(caps_lock, ((buf[i] & 4) > 1 ? HIGH : LOW));
 			}
 		}
 
@@ -114,7 +120,7 @@ int main() {
 			digitalWrite(columns[c], HIGH);
 		}
 		dbIndex--;
-		if(dbIndex > 0) dbIndex = 4;
+		if(dbIndex < 0) dbIndex = 4;
 		write(fd, report, 82);//Send Report over USB
 		usleep(700);
 	}
